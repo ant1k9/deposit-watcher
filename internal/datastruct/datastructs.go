@@ -46,5 +46,17 @@ type DepositRow struct {
 	IsUpdated        bool    `db:"is_updated" json:"isUpdated"`
 	MinimalAmount    int     `db:"minimal_amount" json:"minimalAmount"`
 	Name             string  `db:"name" json:"name"`
+	Off              bool    `db:"off" json:"off"`
+	PreviousRate     float64 `db:"previous_rate" json:"previousRate"`
+	Rate             float64 `db:"rate" json:"rate"`
+}
+
+type DepositRowShort struct {
+	ID               int     `db:"id" json:"id"`
+	Alias            string  `db:"alias" json:"alias"`
+	BankName         string  `db:"bank_name" json:"bankName"`
+	HasReplenishment bool    `db:"has_replenishment" json:"hasReplenishment"`
+	Description      string  `db:"detail" json:"description"`
+	Name             string  `db:"name" json:"name"`
 	Rate             float64 `db:"rate" json:"rate"`
 }

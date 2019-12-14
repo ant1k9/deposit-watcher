@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -8,6 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3" //nolint
 
 	"github.com/ant1k9/deposit-watcher/internal/datastruct"
+	"github.com/ant1k9/deposit-watcher/internal/http/query"
 )
 
 const (
@@ -54,12 +56,12 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 	)
 
 	if depositRow.Alias == deposit.Alias {
-		if depositRow.Rate != newRow.Rate {
+		if depositRow.Rate != newRow.Rate && !depositRow.Off {
 			result := db.MustExec(
 				`UPDATE deposit SET is_updated = TRUE, rate = ?, has_replenishment = ?,
-				detail = ?, minimal_amount = ? WHERE alias = ? AND bank_id = ?`,
+				detail = ?, minimal_amount = ?, previous_rate = ? WHERE alias = ? AND bank_id = ?`,
 				newRow.Rate, newRow.HasReplenishment, newRow.Detail,
-				newRow.MinimalAmount, newRow.Alias, newRow.BankID,
+				newRow.MinimalAmount, depositRow.Rate, newRow.Alias, newRow.BankID,
 			)
 			_, err := result.RowsAffected()
 			return err
@@ -119,8 +121,62 @@ func LinkToDeposit(id int) string {
 	}
 
 	return fmt.Sprintf(
-		"datastructs://www.sravni.ru/bank/%s/vklad/%s/", bankAlias, depositAlias,
+		"https://www.sravni.ru/bank/%s/vklad/%s/", bankAlias, depositAlias,
 	)
+}
+
+// TopN returns top n deposits sorted by rate from the highest to the lowest
+func TopN(n int) []datastruct.DepositRowShort {
+	var deposits []datastruct.DepositRowShort
+
+	err := db.Select(
+		&deposits,
+		`SELECT d.id id, d.alias alias, d.name name, detail, rate, has_replenishment, b.name bank_name
+			FROM deposit d JOIN bank b ON d.bank_id = b.id
+			WHERE NOT off ORDER BY rate desc LIMIT ?`, n,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+		return make([]datastruct.DepositRowShort, 0)
+	}
+
+	return deposits
+}
+
+// DisableDeposit is set flag off to deposit record and it won't be updated anymore
+// It also won't be shown in application to an user
+func DisableDeposit(id int) error {
+	result := db.MustExec("UPDATE deposit SET off = TRUE WHERE id = ?", id)
+	_, err := result.RowsAffected()
+	return err
+}
+
+// GetDepositDescription load description for deposit from database.
+// If description is empty it makes request to the site and save description in the database.
+func GetDepositDescription(id int) string {
+	desc, err := getDepositDescription(id)
+
+	if err != nil {
+		desc = query.GetDepositDescription(LinkToDeposit(id))
+		db.MustExec(
+			"INSERT INTO deposit_details (deposit_id, full_description) VALUES (?, ?)",
+			id, desc,
+		)
+		return desc
+	}
+
+	return desc
+}
+
+func getDepositDescription(id int) (string, error) {
+	var desc sql.NullString
+	query := db.QueryRow(
+		"SELECT full_description FROM deposit_details WHERE deposit_id = ?", id,
+	)
+	err := query.Scan(&desc)
+
+	return desc.String, err
 }
 
 // NewConnection returns a private database connection to sqlite3 database

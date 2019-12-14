@@ -19,7 +19,17 @@ CREATE TABLE IF NOT EXISTS deposit (
 	has_replenishment	BOOLEAN DEFAULT FALSE,
 	is_updated			BOOLEAN DEFAULT TRUE,
 	detail				VARCHAR(1024),
+	previous_rate		REAL,
+	off					BOOLEAN DEFAULT FALSE,
 	FOREIGN KEY (bank_id) REFERENCES bank(id),
 	UNIQUE (bank_id, alias)
+);
+
+CREATE TABLE IF NOT EXISTS deposit_details (
+	id					INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	deposit_id			INTEGER NOT NULL,
+	full_description	TEXT,
+	FOREIGN KEY (deposit_id) REFERENCES deposit(id),
+	UNIQUE (deposit_id)
 )`
 )
