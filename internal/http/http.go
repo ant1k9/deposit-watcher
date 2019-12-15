@@ -31,12 +31,21 @@ func makeRequest(page int) (*http.Response, error) {
 	req.Header.Add("Content-type", "application/json")
 	req.Body = ioutil.NopCloser(strings.NewReader(
 		fmt.Sprintf(`{
-"filters": {
+			"filters": {
 				"organization": [],
 				"currency": "RUB",
 				"capitalization": [],
 				"interestPayment": [],
 				"additionalConditions": [],
+				"depositFeatureTypes":[
+					"typical",
+					"another",
+					"charity",
+					"salary",
+					"online",
+					"mortgage",
+					"client"
+				],
 				"interestPaymentMethod": [],
 				"prolongation": [],
 				"depositTypes": [],

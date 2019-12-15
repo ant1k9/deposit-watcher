@@ -133,7 +133,7 @@ func TopN(n int) []datastruct.DepositRowShort {
 		&deposits,
 		`SELECT d.id id, d.alias alias, d.name name, detail, rate, has_replenishment, b.name bank_name
 			FROM deposit d JOIN bank b ON d.bank_id = b.id
-			WHERE NOT off ORDER BY rate desc LIMIT ?`, n,
+			WHERE NOT off ORDER BY rate DESC LIMIT ?`, n,
 	)
 
 	if err != nil {

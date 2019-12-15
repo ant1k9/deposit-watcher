@@ -12,6 +12,10 @@ import (
 	"github.com/ant1k9/deposit-watcher/internal/db"
 )
 
+const (
+	n = 25
+)
+
 func main() {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -27,13 +31,13 @@ func main() {
 	l.TextStyle = ui.NewStyle(ui.ColorCyan)
 	l.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
 	l.WrapText = false
-	l.SetRect(0, 0, 100, 22)
+	l.SetRect(0, 0, 100, n+2)
 
 	p := widgets.NewParagraph()
-	p.SetRect(0, 22, 100, 26)
+	p.SetRect(0, n+2, 100, n+6)
 
 	desc := widgets.NewParagraph()
-	desc.SetRect(0, 26, 100, 45)
+	desc.SetRect(0, n+6, 100, n+25)
 
 	ui.Render(l, p)
 
@@ -65,7 +69,6 @@ func main() {
 }
 
 func reloadDeposits() ([]datastruct.DepositRowShort, []string, []int) {
-	n := 20
 	deposits := db.TopN(n)
 	depositIds := make([]int, 0, n)
 	depositRows := make([]string, 0, n)
