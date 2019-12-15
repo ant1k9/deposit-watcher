@@ -125,15 +125,20 @@ func LinkToDeposit(id int) string {
 	)
 }
 
-// TopN returns top n deposits sorted by rate from the highest to the lowest
-func TopN(n int) []datastruct.DepositRowShort {
+// TopN returns top n deposits sorted by rate wigh pagination
+func TopN(n, page int, desc bool) []datastruct.DepositRowShort {
 	var deposits []datastruct.DepositRowShort
+
+	order := "ASC"
+	if desc {
+		order = "DESC"
+	}
 
 	err := db.Select(
 		&deposits,
 		`SELECT d.id id, d.alias alias, d.name name, detail, rate, has_replenishment, b.name bank_name
 			FROM deposit d JOIN bank b ON d.bank_id = b.id
-			WHERE NOT off ORDER BY rate DESC LIMIT ?`, n,
+			WHERE NOT off ORDER BY rate `+order+` LIMIT ? OFFSET ?`, n, (page-1)*n,
 	)
 
 	if err != nil {
