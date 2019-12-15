@@ -63,6 +63,8 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 				newRow.Rate, newRow.HasReplenishment, newRow.Detail,
 				newRow.MinimalAmount, depositRow.Rate, newRow.Alias, newRow.BankID,
 			)
+			logChange("update", depositRow, newRow, bank)
+
 			_, err := result.RowsAffected()
 			return err
 		}
@@ -75,9 +77,26 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 		newRow.Alias, newRow.Name, newRow.BankID, newRow.MinimalAmount,
 		newRow.Rate, newRow.HasReplenishment, newRow.Detail,
 	)
-	_, err := result.LastInsertId()
+	logChange("create", depositRow, newRow, bank)
 
+	_, err := result.LastInsertId()
 	return err
+}
+
+func logChange(operation string, depositRow, newRow datastruct.DepositRow, bank datastruct.BankRow) {
+	switch operation {
+	case "update":
+		fmt.Printf(
+			"\033[1mupdate [%s] %s (%f) -> (%f%%)\033[0m\n",
+			bank.Name, depositRow.Name, depositRow.Rate, newRow.Rate,
+		)
+	case "create":
+		fmt.Printf(
+			"\033[1mcreate [%s] %s (%f%%)\033[0m\n",
+			bank.Name, newRow.Name, newRow.Rate,
+		)
+	default:
+	}
 }
 
 // GetOrCreateBankForDeposit takes bank alias as a key.
