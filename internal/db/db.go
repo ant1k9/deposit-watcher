@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" //nolint
@@ -22,7 +23,7 @@ var (
 )
 
 func init() {
-	conn, err := sqlx.Connect("sqlite3", "deposits.db")
+	conn, err := sqlx.Connect("sqlite3", DBName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,11 +58,14 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 
 	if depositRow.Alias == deposit.Alias {
 		if depositRow.Rate != newRow.Rate && !depositRow.Off {
+			now := time.Now().Format("2006-01-02")
 			result := db.MustExec(
 				`UPDATE deposit SET is_updated = TRUE, rate = ?, has_replenishment = ?,
-				detail = ?, minimal_amount = ?, previous_rate = ? WHERE alias = ? AND bank_id = ?`,
+				detail = ?, minimal_amount = ?, previous_rate = ?, updated_at = ?
+				WHERE alias = ? AND bank_id = ?`,
 				newRow.Rate, newRow.HasReplenishment, newRow.Detail,
-				newRow.MinimalAmount, depositRow.Rate, newRow.Alias, newRow.BankID,
+				newRow.MinimalAmount, depositRow.Rate, now,
+				newRow.Alias, newRow.BankID,
 			)
 			logChange("update", depositRow, newRow, bank)
 

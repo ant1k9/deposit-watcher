@@ -61,11 +61,13 @@ func main() {
 				page -= 1
 			}
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
+			l.ScrollTop()
 		case "<PageUp>":
 			if page > 1 {
 				page -= 1
 			}
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
+			l.ScrollTop()
 		case "<C-r>", "<Enter>":
 			c := exec.Command("xdg-open", link)
 			c.Start()

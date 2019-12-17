@@ -49,6 +49,7 @@ type DepositRow struct {
 	Off              bool    `db:"off" json:"off"`
 	PreviousRate     float64 `db:"previous_rate" json:"previousRate"`
 	Rate             float64 `db:"rate" json:"rate"`
+	UpdatedAt        string  `db:"updated_at" json:"updatedAt"`
 }
 
 type DepositRowShort struct {
