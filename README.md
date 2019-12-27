@@ -4,10 +4,12 @@
 
 ```bash
 >>> make
->>> ./deposit-migrate # migration script to local sqlite database
->>> ./deposit-update  # get all updates for deposits
->>> ./deposit-app     # run tui application
->>> ./deposit-backup  # backup database and send zipped archive to dropbox
+>>> ./deposit-migrate         # migration script to local sqlite database
+>>> ./deposit-update          # get all updates for deposits
+>>> ./deposit-app             # run tui application
+>>> ./deposit-backup          # backup database and send zipped archive to dropbox
+>>> ./deposit-rotate-backups  # rotate backups to keep only 30 last files
+>>> make clean                # delete all executables deposit-*
 ```
 
 ### App commands
