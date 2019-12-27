@@ -54,17 +54,17 @@ func main() {
 			reverse = !reverse
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
 		case "<PageDown>":
-			page += 1
+			page++
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
 
 			if len(l.Rows) == 0 {
-				page -= 1
+				page--
 			}
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
 			l.ScrollTop()
 		case "<PageUp>":
 			if page > 1 {
-				page -= 1
+				page--
 			}
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
 			l.ScrollTop()
@@ -73,7 +73,13 @@ func main() {
 			c.Start()
 		case "<Delete>":
 			db.DisableDeposit(depositIds[l.SelectedRow])
+			if l.SelectedRow == 0 && page > 0 {
+				page--
+			}
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
+			if l.SelectedRow == len(l.Rows) {
+				l.ScrollUp()
+			}
 		}
 
 		ui.Render(l)
