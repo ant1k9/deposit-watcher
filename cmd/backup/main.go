@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	errutils "github.com/ant1k9/deposit-watcher/internal/errors"
 )
 
 const (
@@ -18,12 +20,6 @@ const (
 	defaultTimeout       = 5
 	dbName               = "deposits.db"
 )
-
-func failOnErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func main() {
 	token := os.Getenv("DB_BACKUP_TOKEN")
@@ -37,14 +33,14 @@ func main() {
 		dropboxFileUploadURL,
 		bytes.NewBuffer(zippedBackup()),
 	)
-	failOnErr(err)
+	errutils.FailOnErr(err)
 
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	req.Header.Add("Content-Type", "application/octet-stream")
 	req.Header.Add("Dropbox-API-Arg", getPayload())
 
 	response, err := client.Do(req)
-	failOnErr(err)
+	errutils.FailOnErr(err)
 
 	if response.StatusCode != http.StatusOK {
 		data, _ := ioutil.ReadAll(response.Body)
@@ -77,19 +73,18 @@ func getPayload() string {
 
 func zippedBackup() []byte {
 	file, err := ioutil.ReadFile(dbName)
-	failOnErr(err)
+	errutils.FailOnErr(err)
 
 	buf := new(bytes.Buffer)
 	w := zip.NewWriter(buf)
 
 	f, err := w.Create(dbName)
-	failOnErr(err)
+	errutils.FailOnErr(err)
 
 	_, err = f.Write([]byte(file))
-	failOnErr(err)
+	errutils.FailOnErr(err)
 
-	err = w.Close()
-	failOnErr(err)
+	errutils.FailOnErr(w.Close())
 
 	return buf.Bytes()
 }

@@ -3,13 +3,13 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" //nolint
 
 	"github.com/ant1k9/deposit-watcher/internal/datastruct"
+	errutils "github.com/ant1k9/deposit-watcher/internal/errors"
 	"github.com/ant1k9/deposit-watcher/internal/http/query"
 )
 
@@ -24,10 +24,7 @@ var (
 
 func init() {
 	conn, err := sqlx.Connect("sqlite3", DBName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	errutils.FailOnErr(err)
 	db = conn
 }
 
@@ -157,17 +154,15 @@ func TopN(n, page int, desc bool) []datastruct.DepositRowShort {
 		order = "DESC"
 	}
 
-	err := db.Select(
-		&deposits,
-		`SELECT d.id id, d.alias alias, d.name name, detail, rate, has_replenishment, b.name bank_name
+	errutils.FailOnErr(
+		db.Select(
+			&deposits,
+			`SELECT d.id id, d.alias alias, d.name name, detail, rate,
+				has_replenishment, b.name bank_name
 			FROM deposit d JOIN bank b ON d.bank_id = b.id
 			WHERE NOT off ORDER BY rate `+order+` LIMIT ? OFFSET ?`, n, (page-1)*n,
+		),
 	)
-
-	if err != nil {
-		log.Fatal(err)
-		return make([]datastruct.DepositRowShort, 0)
-	}
 
 	return deposits
 }

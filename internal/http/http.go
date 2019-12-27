@@ -79,13 +79,13 @@ func GetDeposits(page int) []datastruct.Deposit {
 	if err == nil {
 		data, err := ioutil.ReadAll(response.Body)
 		if err == nil {
-			json.Unmarshal(data, &entries)
-			json.Unmarshal(entries.Data, &single)
+			_ = json.Unmarshal(data, &entries)
+			_ = json.Unmarshal(entries.Data, &single)
 			deposits = append(deposits, single...)
 
 			for _, deposit := range single {
 				var group []datastruct.Deposit
-				json.Unmarshal(deposit.Other, &group)
+				_ = json.Unmarshal(deposit.Other, &group)
 				deposits = append(deposits, group...)
 			}
 		}

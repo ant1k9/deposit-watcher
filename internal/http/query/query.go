@@ -1,13 +1,14 @@
 package query
 
 import (
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+
+	errutils "github.com/ant1k9/deposit-watcher/internal/errors"
 )
 
 var (
@@ -19,19 +20,14 @@ func GetDepositDescription(link string) string {
 	client := http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequest(http.MethodGet, link, nil)
-	if err != nil {
-		log.Fatal(err)
-		return ""
-	}
+	errutils.FailOnErr(err)
 
 	res, err := client.Do(req)
+	errutils.FailOnErr(err)
 	defer res.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		log.Fatal(err)
-		return ""
-	}
+	errutils.FailOnErr(err)
 
 	el := doc.Find("#__INITIAL_STATE__").First()
 	match := productDescriptionRe.FindStringSubmatch(el.Text())

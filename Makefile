@@ -6,3 +6,6 @@ all: $(commands)
 
 $(commands): %: cmd/%/main.go
 	go build -o deposit-$@ $<
+
+clean:
+	rm deposit-*

@@ -55,7 +55,7 @@ func main() {
 			_, l.Rows, depositIds = reloadDeposits(page, reverse)
 		case "<PageDown>":
 			page++
-			_, l.Rows, depositIds = reloadDeposits(page, reverse)
+			_, l.Rows, depositIds = reloadDeposits(page, reverse) //nolint
 
 			if len(l.Rows) == 0 {
 				page--
@@ -70,9 +70,9 @@ func main() {
 			l.ScrollTop()
 		case "<C-r>", "<Enter>":
 			c := exec.Command("xdg-open", link)
-			c.Start()
+			_ = c.Start()
 		case "<Delete>":
-			db.DisableDeposit(depositIds[l.SelectedRow])
+			_ = db.DisableDeposit(depositIds[l.SelectedRow])
 			if l.SelectedRow == 0 && page > 0 {
 				page--
 			}
