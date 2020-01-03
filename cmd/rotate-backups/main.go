@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	dropboxFileListURL   = "https://api.dropboxapi.com/2/files/list_folder"
-	dropboxFileDeleteURL = "https://api.dropboxapi.com/2/files/delete"
-	dropboxDirectory     = "/deposits"
-	defaultTimeout       = 5
-	hardLimit            = 30
+	dropboxFileListURL      = "https://api.dropboxapi.com/2/files/list_folder"
+	dropboxFileDeleteURL    = "https://api.dropboxapi.com/2/files/delete"
+	defaultTimeout          = 5
+	defaultDropboxDirectory = "/deposits"
+	defaultHardLimit        = 30
 )
 
 type Entry struct {
@@ -36,19 +36,24 @@ func main() {
 		log.Fatal("not DB_BACKUP_TOKEN env variable")
 	}
 
-	entries := getEntries(token)
+	dropboxDirectory := os.Getenv("DROPBOX_DIRECTORY")
+	if dropboxDirectory == "" {
+		dropboxDirectory = defaultDropboxDirectory
+	}
 
-	if len(entries.Entries) > hardLimit {
+	entries := getEntries(dropboxDirectory, token)
+
+	if len(entries.Entries) > defaultHardLimit {
 		sort.Slice(entries.Entries, func(i, j int) bool {
 			return entries.Entries[i].Name < entries.Entries[j].Name
 		})
-		for i := 0; i < len(entries.Entries)-hardLimit; i++ {
-			deleteEntry(entries.Entries[i].Name, token)
+		for i := 0; i < len(entries.Entries)-defaultHardLimit; i++ {
+			deleteEntry(dropboxDirectory, entries.Entries[i].Name, token)
 		}
 	}
 }
 
-func deleteEntry(name, token string) {
+func deleteEntry(dropboxDirectory, name, token string) {
 	payload := pathPayload(fmt.Sprintf("%s/%s", dropboxDirectory, name))
 	doRequest(dropboxFileDeleteURL, token, payload)
 }
@@ -70,7 +75,7 @@ func doRequest(url, token string, payload []byte) *http.Response {
 	return response
 }
 
-func getEntries(token string) EntryInfo {
+func getEntries(dropboxDirectory, token string) EntryInfo {
 	payload := pathPayload(dropboxDirectory)
 	response := doRequest(dropboxFileListURL, token, payload)
 
