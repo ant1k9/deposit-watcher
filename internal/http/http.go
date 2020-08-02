@@ -21,7 +21,7 @@ const (
 )
 
 func makeRequest(page int) (*http.Response, error) {
-	client := http.Client{Timeout: 5 * time.Second}
+	client := http.Client{Timeout: 10 * time.Second}
 
 	req, err := http.NewRequest(http.MethodPost, BaseURL+DepositsURI, nil)
 	if err != nil {

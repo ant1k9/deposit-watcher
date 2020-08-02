@@ -47,6 +47,7 @@ type DepositRow struct {
 	MinimalAmount    int     `db:"minimal_amount" json:"minimalAmount"`
 	Name             string  `db:"name" json:"name"`
 	Off              bool    `db:"off" json:"off"`
+	IsExist          bool    `db:"is_exist" json:"isExist"`
 	PreviousRate     float64 `db:"previous_rate" json:"previousRate"`
 	Rate             float64 `db:"rate" json:"rate"`
 	UpdatedAt        string  `db:"updated_at" json:"updatedAt"`

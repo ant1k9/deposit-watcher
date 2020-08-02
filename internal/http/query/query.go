@@ -17,7 +17,7 @@ var (
 
 // GetDepositDescription fetch deposit page and parse the description from it
 func GetDepositDescription(link string) string {
-	client := http.Client{Timeout: 5 * time.Second}
+	client := http.Client{Timeout: 10 * time.Second}
 
 	req, err := http.NewRequest(http.MethodGet, link, nil)
 	errutils.FailOnErr(err)

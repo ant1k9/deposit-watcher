@@ -9,6 +9,7 @@ import (
 
 func main() {
 	total := http.GetTotal(1)
+	existedIds := make([]int, 0, total)
 
 	for i := 1; i < total/http.PageSize+1; i++ {
 		for _, deposit := range http.GetDeposits(i) {
@@ -18,10 +19,13 @@ func main() {
 				continue
 			}
 
-			err = db.CreateOrUpdateDeposit(deposit, bank)
+			id, err := db.CreateOrUpdateDeposit(deposit, bank)
 			if err != nil {
 				log.Println(err)
 			}
+			existedIds = append(existedIds, id)
 		}
 	}
+
+	db.SetActiveDeposits(existedIds)
 }

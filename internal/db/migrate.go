@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS deposit (
 	detail				VARCHAR(1024),
 	previous_rate		REAL,
 	off					BOOLEAN DEFAULT FALSE,
+	is_exist            BOOLEAN DEFAULT TRUE,
 	updated_at			DATE DEFAULT CURRENT_DATE,
 	FOREIGN KEY (bank_id) REFERENCES bank(id),
 	UNIQUE (bank_id, alias)

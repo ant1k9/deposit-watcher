@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -37,13 +39,14 @@ func convertToDepositRow(deposit datastruct.Deposit, bankID int) datastruct.Depo
 		Rate:             deposit.Rate,
 		HasReplenishment: deposit.Replenishment.Available,
 		Detail:           deposit.Replenishment.Description,
+		IsExist:          true,
 	}
 }
 
 // CreateOrUpdateDeposit make a new database in database.
 // If deposit with given alias is existed then it should be updated.
 // In other cases new deposit is created.
-func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) error {
+func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) (int, error) {
 	depositRow := datastruct.DepositRow{}
 	newRow := convertToDepositRow(deposit, bank.ID)
 
@@ -53,10 +56,10 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 		deposit.Alias, bank.ID,
 	)
 
-	if depositRow.Alias == deposit.Alias {
-		if depositRow.Rate != newRow.Rate && !depositRow.Off {
+	if depositRow.Alias == newRow.Alias {
+		if depositRow.Rate != newRow.Rate {
 			now := time.Now().Format("2006-01-02")
-			result := db.MustExec(
+			_ = db.MustExec(
 				`UPDATE deposit SET is_updated = TRUE, rate = ?, has_replenishment = ?,
 				detail = ?, minimal_amount = ?, previous_rate = ?, updated_at = ?
 				WHERE alias = ? AND bank_id = ?`,
@@ -65,23 +68,20 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 				newRow.Alias, newRow.BankID,
 			)
 			logChange("update", depositRow, newRow, bank)
-
-			_, err := result.RowsAffected()
-			return err
 		}
-		return nil
+		return depositRow.ID, nil
 	}
 
 	result := db.MustExec(`INSERT INTO deposit
-		(alias, name, bank_id, minimal_amount, rate, has_replenishment, detail)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		(alias, name, bank_id, minimal_amount, rate, has_replenishment, detail, is_exist)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		newRow.Alias, newRow.Name, newRow.BankID, newRow.MinimalAmount,
-		newRow.Rate, newRow.HasReplenishment, newRow.Detail,
+		newRow.Rate, newRow.HasReplenishment, newRow.Detail, newRow.IsExist,
 	)
 	logChange("create", depositRow, newRow, bank)
 
-	_, err := result.LastInsertId()
-	return err
+	res, err := result.LastInsertId()
+	return int(res), err
 }
 
 func logChange(operation string, depositRow, newRow datastruct.DepositRow, bank datastruct.BankRow) {
@@ -173,6 +173,24 @@ func DisableDeposit(id int) error {
 	result := db.MustExec("UPDATE deposit SET off = TRUE WHERE id = ?", id)
 	_, err := result.RowsAffected()
 	return err
+}
+
+// SetActiveDeposits is turn off is_exist for all object exclude given ids
+func SetActiveDeposits(ids []int) {
+	var idsTuple strings.Builder
+	for idx, id := range ids {
+		if idx > 0 {
+			idsTuple.WriteString(",")
+		}
+		idsTuple.WriteString(strconv.Itoa(id))
+	}
+
+	_ = db.MustExec(
+		"UPDATE deposit SET is_exist = TRUE WHERE id IN (" + idsTuple.String() + ")",
+	)
+	_ = db.MustExec(
+		"UPDATE deposit SET is_exist = FALSE, off = TRUE WHERE id NOT IN (" + idsTuple.String() + ")",
+	)
 }
 
 // GetDepositDescription load description for deposit from database.
