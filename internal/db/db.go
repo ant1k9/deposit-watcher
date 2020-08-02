@@ -18,6 +18,8 @@ import (
 const (
 	// DBName is the name of the database with bank and deposits
 	DBName = "deposits.db"
+
+	limitRate = 5.0
 )
 
 var (
@@ -40,6 +42,7 @@ func convertToDepositRow(deposit datastruct.Deposit, bankID int) datastruct.Depo
 		HasReplenishment: deposit.Replenishment.Available,
 		Detail:           deposit.Replenishment.Description,
 		IsExist:          true,
+		Off:              deposit.Rate < limitRate,
 	}
 }
 
@@ -59,12 +62,18 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 	if depositRow.Alias == newRow.Alias {
 		if depositRow.Rate != newRow.Rate {
 			now := time.Now().Format("2006-01-02")
+
+			newRow.Off = depositRow.Off
+			if depositRow.Rate < limitRate && newRow.Rate >= limitRate {
+				newRow.Off = false
+			}
+
 			_ = db.MustExec(
 				`UPDATE deposit SET is_updated = TRUE, rate = ?, has_replenishment = ?,
-				detail = ?, minimal_amount = ?, previous_rate = ?, updated_at = ?
+				detail = ?, minimal_amount = ?, previous_rate = ?, off = ?, updated_at = ?
 				WHERE alias = ? AND bank_id = ?`,
 				newRow.Rate, newRow.HasReplenishment, newRow.Detail,
-				newRow.MinimalAmount, depositRow.Rate, now,
+				newRow.MinimalAmount, depositRow.Rate, newRow.Off, now,
 				newRow.Alias, newRow.BankID,
 			)
 			logChange("update", depositRow, newRow, bank)
@@ -73,10 +82,10 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 	}
 
 	result := db.MustExec(`INSERT INTO deposit
-		(alias, name, bank_id, minimal_amount, rate, has_replenishment, detail, is_exist)
+		(alias, name, bank_id, minimal_amount, rate, has_replenishment, detail, off)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		newRow.Alias, newRow.Name, newRow.BankID, newRow.MinimalAmount,
-		newRow.Rate, newRow.HasReplenishment, newRow.Detail, newRow.IsExist,
+		newRow.Rate, newRow.HasReplenishment, newRow.Detail, newRow.Off,
 	)
 	logChange("create", depositRow, newRow, bank)
 
@@ -96,7 +105,6 @@ func logChange(operation string, depositRow, newRow datastruct.DepositRow, bank 
 			"\033[1mcreate [%s] %s (%f%%)\033[0m\n",
 			bank.Name, newRow.Name, newRow.Rate,
 		)
-	default:
 	}
 }
 
