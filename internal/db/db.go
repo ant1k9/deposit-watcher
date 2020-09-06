@@ -63,7 +63,6 @@ func CreateOrUpdateDeposit(deposit datastruct.Deposit, bank datastruct.BankRow) 
 		if depositRow.Rate != newRow.Rate {
 			now := time.Now().Format("2006-01-02")
 
-			newRow.Off = depositRow.Off
 			if depositRow.Rate < limitRate && newRow.Rate >= limitRate {
 				newRow.Off = false
 			}
