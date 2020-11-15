@@ -35,9 +35,9 @@ func main() {
 	)
 	errutils.FailOnErr(err)
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.Header.Add("Content-Type", "application/octet-stream")
-	req.Header.Add("Dropbox-API-Arg", getPayload())
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Dropbox-API-Arg", getPayload())
 
 	response, err := client.Do(req)
 	errutils.FailOnErr(err)

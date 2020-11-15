@@ -67,8 +67,8 @@ func doRequest(url, token string, payload []byte) *http.Response {
 	)
 	errutils.FailOnErr(err)
 
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Content-Type", "application/json")
 	response, err := client.Do(req)
 	errutils.FailOnErr(err)
 

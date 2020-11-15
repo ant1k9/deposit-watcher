@@ -28,7 +28,7 @@ func makeRequest(page int) (*http.Response, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Content-type", "application/json")
+	req.Header.Set("Content-type", "application/json")
 	req.Body = ioutil.NopCloser(strings.NewReader(
 		fmt.Sprintf(`{
 			"filters": {
