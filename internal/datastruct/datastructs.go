@@ -20,7 +20,25 @@ type Deposit struct {
 		Available   bool   `json:"available,omitempty"`
 		Description string `json:"description,omitempty"`
 	} `json:"replenishment"`
+	SelectionParams struct {
+		Feature string `json:"feature,omitempty"`
+	} `json:"selectionParams,omitempty"`
 	Other json.RawMessage `json:"group,omitempty"`
+}
+
+// IsUsual check if deposit has no other conditions to be opened
+func (d Deposit) IsUsual() bool {
+	for _, unusualType := range []string{
+		"insurance",
+		"investment",
+		"pension",
+	} {
+		if d.SelectionParams.Feature == unusualType {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Total is a partial structure that only gets a total number
@@ -53,6 +71,7 @@ type DepositRow struct {
 	UpdatedAt        string  `db:"updated_at" json:"updatedAt"`
 }
 
+// DepositRowShort ...
 type DepositRowShort struct {
 	ID               int     `db:"id" json:"id"`
 	Alias            string  `db:"alias" json:"alias"`

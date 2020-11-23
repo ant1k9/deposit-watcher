@@ -33,25 +33,19 @@ func makeRequest(page int) (*http.Response, error) {
 		fmt.Sprintf(`{
 			"filters": {
 				"organization": [],
-				"currency": "RUB",
-				"capitalization": [],
-				"interestPayment": [],
 				"additionalConditions": [],
-				"depositFeatureTypes":[
-					"typical",
-					"another",
-					"charity",
-					"salary",
-					"online",
-					"mortgage",
-					"client"
-				],
-				"interestPaymentMethod": [],
 				"prolongation": [],
-				"depositTypes": [],
+				"interestPaymentMethod": [],
+				"capitalization": [],
+				"currency": "RUB",
 				"earlyTermination": [],
+				"depositTypes": [],
+				"interestPayment": [],
 				"rating": "100",
-				"location":"6.83."
+				"location":"6.83.",
+				"advertising": {
+					"source": "search"
+				}
 			},
 			"limit": %d, "skip":%d
 		}`, PageSize, PageSize*(page-1)),

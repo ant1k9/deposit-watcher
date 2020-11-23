@@ -19,10 +19,15 @@ func main() {
 				continue
 			}
 
+			if !deposit.IsUsual() {
+				continue
+			}
+
 			id, err := db.CreateOrUpdateDeposit(deposit, bank)
 			if err != nil {
 				log.Println(err)
 			}
+
 			existedIds = append(existedIds, id)
 		}
 	}
