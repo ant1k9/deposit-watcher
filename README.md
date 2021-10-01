@@ -1,6 +1,6 @@
-## Deposit Watcher
+### Deposit Watcher 💰
 
-### Usage
+#### Usage
 
 ```bash
 >>> make
@@ -12,7 +12,7 @@
 >>> make clean                # delete all executables deposit-*
 ```
 
-### App commands
+#### App commands
 
 |Button             |Action                                             |
 |-------------------|---------------------------------------------------|
@@ -23,6 +23,6 @@
 |**\<PageUp\>**     | previous page                                     |
 |**\<q\> \<C-c\>**  | exit from app                                     |
 
-### Backup
+#### Backup
 
-It's needed to have `DB_BACKUP_TOKEN` in environment variables to send backup to dropbox.
+You need to have `DB_BACKUP_TOKEN` in your env to send backup to dropbox.
