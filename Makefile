@@ -10,5 +10,11 @@ $(commands): %: cmd/%/main.go
 lint:
 	golangci-lint run
 
+load:
+	./deposit-update
+
+dump:
+	./deposit-backup
+
 clean:
 	@rm -f deposit-*
