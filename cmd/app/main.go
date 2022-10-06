@@ -26,6 +26,11 @@ func main() {
 	reverse := true
 	_, depositRows, depositIds := reloadDeposits(page, reverse)
 
+	if len(depositIds) == 0 {
+		log.Println("please run deposit-update to get new deposits")
+		return
+	}
+
 	l := prepareDepositList()
 	l.Rows = depositRows
 	ui.Render(l)
