@@ -2,10 +2,10 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/ant1k9/deposit-watcher/internal/datastruct"
@@ -13,9 +13,9 @@ import (
 
 const (
 	// BaseURL is the only available URL `sravni.ru`
-	BaseURL = "https://www.sravni.ru"
+	BaseURL = "public.sravni.ru"
 	// DepositsURI link for list of deposits. It has pagination
-	DepositsURI = "/proxy-deposits/deposits/list"
+	DepositsURI = "/v1/deposit/special/list"
 	// PageSize is a number of items for pagination
 	PageSize = 10
 )
@@ -23,33 +23,23 @@ const (
 func makeRequest(page int) (*http.Response, error) {
 	client := http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest(http.MethodPost, BaseURL+DepositsURI, nil)
+	queryValues := url.Values{}
+	queryValues.Add("location", "6.83")
+	queryValues.Add("currency", "RUB")
+	queryValues.Add("limit", strconv.Itoa(PageSize))
+	queryValues.Add("skip", strconv.Itoa(PageSize*(page-1)))
+
+	uri := url.URL{
+		Scheme:   "https",
+		Host:     BaseURL,
+		Path:     DepositsURI,
+		RawQuery: queryValues.Encode(),
+	}
+
+	req, err := http.NewRequest(http.MethodGet, uri.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Set("Content-type", "application/json")
-	req.Body = ioutil.NopCloser(strings.NewReader(
-		fmt.Sprintf(`{
-			"filters": {
-				"organization": [],
-				"additionalConditions": [],
-				"prolongation": [],
-				"interestPaymentMethod": [],
-				"capitalization": [],
-				"currency": "RUB",
-				"earlyTermination": [],
-				"depositTypes": [],
-				"interestPayment": [],
-				"rating": "100",
-				"location":"6.83.",
-				"advertising": {
-					"source": "search"
-				}
-			},
-			"limit": %d, "skip":%d
-		}`, PageSize, PageSize*(page-1)),
-	))
 
 	response, err := client.Do(req)
 	if err != nil {
